@@ -66,7 +66,7 @@ Opciones del menu principal:
 EJEMPLO DE FLUJO EN CONSOLA
 ---------------------------
 ==========================================
-   WEATHER CLI - RESILIENCIA URBANA
+  CLIMEGREEN - RESILIENCIA URBANA
 ==========================================
 1. Registrar medicion
 2. Consultar por zona
