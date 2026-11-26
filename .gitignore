@@ -1,0 +1,33 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+.env
+
+# Cachés de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Logs generados en ejecución
+logs/
+*.log
+
+# Distribución / empaquetado
+build/
+dist/
+*.egg-info/
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Secretos locales (por si se usa python-dotenv)
+*.env
+!.env.example
