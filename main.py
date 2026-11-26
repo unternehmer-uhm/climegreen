@@ -66,6 +66,63 @@ def evaluar_alertas(registro: dict[str, Any]) -> list[str]:
     return []
 
 
+def validar_zona_entrada(zona: str) -> tuple[bool, str]:
+    """Conecta con validar_zona de SaraCo o aplica validación provisional."""
+    if validaciones and hasattr(validaciones, "validar_zona"):
+        resultado = validaciones.validar_zona(zona)
+        if isinstance(resultado, tuple) and len(resultado) == 2:
+            return bool(resultado[0]), str(resultado[1])
+        return bool(resultado), "Zona no válida."
+    if not zona.strip():
+        return False, "La zona no puede estar vacía."
+    return True, "Zona válida"
+
+
+def obtener_registros_por_zona(zona: str) -> list[dict[str, Any]]:
+    """Conecta con filtrar_por_zona de Doramas o devuelve lista vacía provisional."""
+    if almacenamiento and hasattr(almacenamiento, "filtrar_por_zona"):
+        datos = almacenamiento.filtrar_por_zona(zona)
+        if isinstance(datos, list):
+            return datos
+    return []
+
+
+def imprimir_tabla_registros(zona: str, registros: list[dict[str, Any]]) -> None:
+    """Imprime los registros filtrados en formato de tabla legible por consola."""
+    print(f"\n--- Registros para la zona: {zona} ---")
+    if not registros:
+        print("No hay mediciones registradas para esta zona.")
+        return
+
+    cabeceras = ["Fecha", "Zona", "Temp (°C)", "Hum (%)", "Viento (km/h)", "Lluvia (mm)"]
+    filas: list[list[str]] = []
+
+    for item in registros:
+        filas.append([
+            str(item.get("fecha", "")),
+            str(item.get("zona", zona)),
+            str(item.get("temperatura", "")),
+            str(item.get("humedad", "")),
+            str(item.get("viento", "")),
+            str(item.get("lluvia", "")),
+        ])
+
+    anchos = [
+        max(len(cabeceras[i]), *(len(fila[i]) for fila in filas))
+        for i in range(len(cabeceras))
+    ]
+
+    linea_sep = "+" + "+".join("-" * (ancho + 2) for ancho in anchos) + "+"
+    encabezado = "|" + "|".join(f" {cabeceras[i]:<{anchos[i]}} " for i in range(len(cabeceras))) + "|"
+
+    print(linea_sep)
+    print(encabezado)
+    print(linea_sep)
+    for fila in filas:
+        print("|" + "|".join(f" {fila[i]:<{anchos[i]}} " for i in range(len(cabeceras))) + "|")
+    print(linea_sep)
+
+
 def opcion_registrar() -> None:
     """Flujo completo de la opción 1: Registrar medición climática."""
     print("\n--- Registrar nueva medición en CLIMEGREEN ---")
@@ -86,7 +143,6 @@ def opcion_registrar() -> None:
             "lluvia": lluvia,
         }
 
-        # 1. Validaciones de negocio (SaraCo - CLM-23)
         es_valido, mensaje = validar_registro(registro)
         if not es_valido:
             print(f"\nDatos no válidos: {mensaje}")
@@ -96,14 +152,12 @@ def opcion_registrar() -> None:
             print("Registro cancelado.")
             return
 
-        # 2. Almacenamiento (Doramas - CLM-24)
         try:
             guardar_registro(registro)
         except Exception as error:
             print(f"\nError al guardar el registro: {error}")
             return
 
-        # 3. Alertas (Susana - CLM-25)
         lista_alertas = evaluar_alertas(registro)
         print("\nRegistro completado correctamente.")
         if lista_alertas:
@@ -115,8 +169,23 @@ def opcion_registrar() -> None:
         break
 
 
-def consultar_zona_stub() -> None:
-    print("\n[Pendiente] Opción 2: Consultar por zona (Tarea 4.4).")
+def opcion_consultar_por_zona() -> None:
+    """Flujo de la opción 2: Consultar por zona con salida en tabla."""
+    print("\n--- Consultar mediciones por zona ---")
+    zona = pedir_texto_obligatorio("Introduce la zona a consultar: ")
+
+    es_valida, mensaje = validar_zona_entrada(zona)
+    if not es_valida:
+        print(f"\nAviso: {mensaje} Volviendo al menú principal.")
+        return
+
+    try:
+        registros = obtener_registros_por_zona(zona)
+    except Exception as error:
+        print(f"\nError al consultar los registros: {error}")
+        return
+
+    imprimir_tabla_registros(zona, registros)
 
 
 def ver_historico_stub() -> None:
@@ -143,7 +212,7 @@ def main() -> None:
         if opcion == "1":
             opcion_registrar()
         elif opcion == "2":
-            consultar_zona_stub()
+            opcion_consultar_por_zona()
         elif opcion == "3":
             ver_historico_stub()
         elif opcion == "4":
