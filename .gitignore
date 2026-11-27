@@ -31,3 +31,8 @@ Thumbs.db
 # Secretos locales (por si se usa python-dotenv)
 *.env
 !.env.example
+# Copias de seguridad del almacenamiento
+*.bak
+
+# Metadatos de archivos descargados en Windows
+*:Zone.Identifier

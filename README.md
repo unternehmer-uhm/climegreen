@@ -161,3 +161,80 @@ pytest -v
 | 2 | `almacenamiento.py` + `data/` | Persistencia JSON, filtrado y control de duplicados |
 | 3 | `alertas.py` + `logs/` | Umbrales de alerta y registro de eventos |
 | 4 | `main.py` + `tests/` | Menú interactivo, integración y pruebas |
+
+---
+
+## Dataset meteorológico y almacenamiento
+
+### Características del dataset
+
+El proyecto incorpora un dataset meteorológico de prueba
+correspondiente a Madrid durante el año 2025.
+
+- Archivo CSV: `data/raw/datos_meteorologicos_prueba.csv`.
+- Archivo JSON: `data/datos.json`.
+- Periodo: del 01/01/2025 al 31/12/2025.
+- Total de registros: 1.825.
+- Frecuencia: diaria.
+- Registros por zona: 365.
+- Zonas válidas: Centro, Norte, Sur, Este y Oeste.
+
+Los datos por zona son simulados a partir del dataset inicial
+de Madrid con fines educativos. No representan mediciones
+meteorológicas oficiales de cada zona.
+
+### Estructura de los registros
+
+| Campo | Descripción | Unidad |
+|---|---|---|
+| `fecha` | Fecha de la medición | AAAA-MM-DD |
+| `zona` | Zona geográfica | Texto |
+| `temperatura` | Temperatura media diaria | °C |
+| `humedad` | Humedad relativa | % |
+| `viento` | Velocidad del viento | km/h |
+| `lluvia` | Precipitación diaria | mm |
+
+### Conversión del dataset
+
+El script `scripts/convertir_dataset.py` permite transformar
+el archivo CSV al formato JSON utilizado por la aplicación.
+
+Para generar el JSON inicial:
+
+```bash
+python scripts/convertir_dataset.py
+```
+
+El conversor evita sobrescribir un histórico existente.
+
+### Módulo de almacenamiento
+
+El módulo `almacenamiento.py` proporciona las siguientes
+funciones:
+
+| Función | Responsabilidad |
+|---|---|
+| `cargar_datos()` | Lectura del JSON y gestión de errores. |
+| `guardar_datos()` | Escritura segura y copia de seguridad. |
+| `agregar_registro()` | Incorporación de registros y rechazo de duplicados. |
+| `filtrar_por_zona()` | Consulta de registros por zona geográfica. |
+
+Cada registro se identifica mediante la combinación de fecha
+y zona, permitiendo almacenar mediciones de distintas zonas
+en un mismo día.
+
+### Pruebas del módulo de almacenamiento
+
+El archivo `tests/test_almacenamiento.py` contiene ocho
+pruebas unitarias que verifican la lectura, escritura,
+persistencia, gestión de errores, copias de seguridad,
+prevención de duplicados y filtrado por zonas.
+
+Para ejecutar las pruebas:
+
+```bash
+python -m pytest tests/test_almacenamiento.py -v
+```
+
+Las pruebas utilizan archivos temporales para evitar
+modificar el histórico meteorológico.
